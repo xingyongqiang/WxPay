@@ -1,0 +1,24 @@
+	/**
+	 * 获取用户openid
+	 */
+	private function init_openid() {
+		//$_SESSION["openid"] = "oXLtZwWQjTxJUF_qiXbsjS30Usyc";
+        if(empty($_SESSION['openid'])) {
+			include_once(APPPATH . 'library/Wxpay.php');
+            $jsApi = new JsApi_pub();
+            if (! isset($_GET['code'])) {
+                //触发微信返回code码
+                $url = $jsApi->createOauthUrlForCode();
+                Header("Location: $url");
+            } else {
+                //获取code码，以获取openid
+				$_SESSION["openid"] = $openid = $jsApi->getOpenId($_GET['code']);
+				if (! $openid) {
+					$this->error("获取异常，请联系管理员！");
+				}
+            }
+        } else {
+			 $openid = $_SESSION['openid'];
+		}
+        return $openid;
+	}
