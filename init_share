@@ -1,0 +1,36 @@
+	/**
+	 * 初始化分享
+	 */
+	private function init_share() {
+		//生成分享连接
+		$timestamp = time();
+		$nonceStr = "nyxqdcmnyxqdcmny";##必须是16位
+		$fc = new Fcache();
+		$ticket = $fc->get("wx_ticket");
+        if (! $ticket) {
+			$token = $this->get_access_token();
+			if ($token) {
+				$url = sprintf("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi", $token);
+				$res = file_get_contents($url);
+				$res = json_decode($res, true);
+				if (isset($res['ticket'])) {
+					$ticket = $res['ticket'];
+				
+					//更新缓存
+					$fc->set("wx_ticket", $ticket, 7200);
+				}
+			}
+		}
+		$link = "http://".$_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+		$wxOri = sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%s&url=%s", $ticket, $nonceStr, $timestamp, $link);
+		$signature = sha1($wxOri);
+		$share_info['signature'] = $signature;
+		$share_info['timestamp'] = $timestamp;
+		$share_info['nonceStr'] = $nonceStr;
+		$share_info['appid'] = 'wx0d663d6198290fd1';
+		$share_info['title'] = @$this->user["nick"] . '邀请您成为代理';
+		$share_info['desc'] = '网络传媒欢迎您的关注。';
+		$share_info['link'] = "http://".$_SERVER["SERVER_NAME"] . "/mobile/subscribe/" . @$this->user["code"];
+		$share_info['imgurl'] = "http://".$_SERVER["SERVER_NAME"] . '/static/m/img/share.jpg';
+		$this->assign("share_info", $share_info);
+	}
