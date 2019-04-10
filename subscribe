@@ -1,0 +1,26 @@
+/**
+	 * 通过分享进行关注
+	 */
+	public function subscribe($invite_code = "") {
+		$openid = $this->init_openid();
+
+		//推广码
+		$invite_code = substr(sql_format($invite_code), 0, 8);
+
+		
+		//生成推广二维码
+		$code_path = BASEPATH . 'pic/qrcode/' . $openid . '.jpg';
+		if(! file_exists($code_path)){
+			//生成二维码
+			$code_data = '{"action_name": "QR_LIMIT_STR_SCENE", "action_info": {"scene": {"scene_str": "'.$code.'"}}}';
+			$accessToken = $this->get_access_token();
+			$url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=" . $accessToken;
+			$res = http($url, $code_data);
+			$res = json_decode($res, true);
+			
+			//保存二维码
+			$url='https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=' . $res['ticket'];
+			$img = file_get_contents($url);
+			file_put_contents($code_path, $img);
+		}
+	}
